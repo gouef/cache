@@ -11,6 +11,12 @@ type Memory struct {
 	mu    sync.RWMutex
 }
 
+func NewMemory() *Memory {
+	return &Memory{
+		items: make(map[string]*MemoryItem),
+	}
+}
+
 func (c *Memory) GetItem(key string) standards.CacheItem {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
@@ -26,7 +32,10 @@ func (c *Memory) GetItems(keys ...string) []standards.CacheItem {
 	defer c.mu.RUnlock()
 	var result []standards.CacheItem
 	for _, key := range keys {
-		result = append(result, c.GetItem(key))
+		item := c.GetItem(key)
+		if item != nil {
+			result = append(result, c.GetItem(key))
+		}
 	}
 	return result
 }

@@ -14,6 +14,13 @@ type MemoryItem struct {
 	mu         sync.RWMutex
 }
 
+func NewMemoryItem(key string) *MemoryItem {
+	return &MemoryItem{
+		key: key,
+		hit: false,
+	}
+}
+
 func (m *MemoryItem) GetKey() string {
 	return m.key
 }

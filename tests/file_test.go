@@ -3,7 +3,6 @@ package tests
 import (
 	"github.com/gouef/cache"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"os"
 	"path/filepath"
 	"sync"
@@ -243,15 +242,6 @@ func TestFile_NewFile(t *testing.T) {
 
 	_, err := cache.NewFile(dir)
 	assert.Error(t, err, "Failed to create file cache")
-}
-
-type FileMock struct {
-	mock.Mock
-}
-
-func (fm *FileMock) getFilePath(key string) string {
-	args := fm.Called(key)
-	return args.String(0)
 }
 
 func TestFile_Save(t *testing.T) {

@@ -1,7 +1,13 @@
 <img align=right width="168" src="docs/gouef_logo.png">
 
 # Cache
-Github template for new libraries
+`Cache` is a lightweight, flexible, and efficient caching library for Go, designed to support multiple backends, including [in-memory](docs/Memory.md), [file-based](docs/File.md), and [Redis](docs/Redis.md). It provides a unified interface for caching operations, making it simple to switch between storage solutions without changing your application logic.
+
+Whether you need a fast, ephemeral cache for high-performance applications or a persistent cache for long-term storage, this library has you covered.
+
+With a focus on simplicity and ease of use, Cache enables developers to manage cached data effortlessly, improving application performance and reducing latency.
+
+This package implements [github.com/gouef/standards](https://github.com/gouef/standards).
 
 [![Static Badge](https://img.shields.io/badge/Github-gouef%2Fcache-blue?style=for-the-badge&logo=github&link=github.com%2Fgouef%2Fcache)](https://github.com/gouef/cache)
 

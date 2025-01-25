@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/gouef/standards"
 	redisLib "github.com/redis/go-redis/v9"
+	"time"
 )
 
 type Redis struct {
@@ -12,12 +13,7 @@ type Redis struct {
 	ctx    context.Context
 }
 
-func NewRedisCache(addr, password string, db int) standards.Cache {
-	client := redisLib.NewClient(&redisLib.Options{
-		Addr:     addr,
-		Password: password,
-		DB:       db,
-	})
+func NewRedis(client *redisLib.Client) standards.Cache {
 	return &Redis{
 		client: client,
 		ctx:    context.Background(),
@@ -27,7 +23,7 @@ func NewRedisCache(addr, password string, db int) standards.Cache {
 func (c *Redis) GetItem(key string) standards.CacheItem {
 	value, err := c.client.Get(c.ctx, key).Result()
 	if err == redisLib.Nil {
-		return &RedisItem{key: key, hit: false}
+		return nil
 	}
 	return &RedisItem{key: key, value: value, hit: true}
 }
@@ -35,14 +31,17 @@ func (c *Redis) GetItem(key string) standards.CacheItem {
 func (c *Redis) GetItems(keys ...string) []standards.CacheItem {
 	var items []standards.CacheItem
 	for _, key := range keys {
-		items = append(items, c.GetItem(key))
+		item := c.GetItem(key)
+		if item != nil && item.Get() != "" {
+			items = append(items, c.GetItem(key))
+		}
 	}
 	return items
 }
 
 func (c *Redis) HasItem(key string) bool {
-	_, err := c.client.Get(c.ctx, key).Result()
-	return err != redisLib.Nil
+	item, err := c.client.Get(c.ctx, key).Result()
+	return err != redisLib.Nil && item != ""
 }
 
 func (c *Redis) Clear() error {
@@ -62,7 +61,7 @@ func (c *Redis) Save(item standards.CacheItem) error {
 	if !ok {
 		return errors.New("invalid cache item type")
 	}
-	return c.client.Set(c.ctx, rItem.GetKey(), rItem.Get(), 0).Err()
+	return c.client.Set(c.ctx, rItem.GetKey(), rItem.Get(), rItem.expiration.Sub(time.Now())).Err()
 }
 
 func (c *Redis) SaveDeferred(item standards.CacheItem) error {

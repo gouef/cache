@@ -6,9 +6,17 @@ import (
 )
 
 type RedisItem struct {
-	key   string
-	value any
-	hit   bool
+	key        string
+	value      any
+	hit        bool
+	expiration time.Time
+}
+
+func NewRedisItem(key string) *RedisItem {
+	return &RedisItem{
+		key: key,
+		hit: false,
+	}
 }
 
 func (r *RedisItem) GetKey() string {
@@ -16,11 +24,15 @@ func (r *RedisItem) GetKey() string {
 }
 
 func (r *RedisItem) Get() any {
-	return r.value
+	if r.IsHit() {
+		return r.value
+	}
+
+	return nil
 }
 
 func (r *RedisItem) IsHit() bool {
-	return r.hit
+	return r.hit && (r.expiration.IsZero() || r.expiration.After(time.Now()))
 }
 
 func (r *RedisItem) Set(value any) (standards.CacheItem, error) {
@@ -30,8 +42,10 @@ func (r *RedisItem) Set(value any) (standards.CacheItem, error) {
 }
 
 func (r *RedisItem) ExpiresAt(expiration time.Time) (standards.CacheItem, error) {
+	r.expiration = expiration
 	return r, nil
 }
 
 func (r *RedisItem) ExpiresAfter(t time.Duration) {
+	r.ExpiresAt(time.Now().Add(t))
 }

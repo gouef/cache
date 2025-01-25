@@ -23,6 +23,11 @@ To use this package in your project, add it using Go modules:
 go get -u github.com/gouef/cache
 ```
 
+## Usages
+- [File](docs/File.md)
+- [Memory](docs/Memory.md)
+- [Redis](docs/Redis.md)
+
 ## Contributing
 
 Read [Contributing](CONTRIBUTING.md)

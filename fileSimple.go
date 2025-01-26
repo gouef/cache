@@ -2,7 +2,6 @@ package cache
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/gouef/standards"
 	"os"
 	"path/filepath"
@@ -128,7 +127,7 @@ func (c *FileSimple) DeleteMultiply(keys ...string) error {
 
 // Set Persists a cache item.
 func (c *FileSimple) Set(key string, item any) error {
-	fItem, err := c.getFileItem(key, item)
+	fItem := c.getFileItem(key, item)
 
 	data, err := json.Marshal(fItem)
 	if err != nil {
@@ -141,7 +140,7 @@ func (c *FileSimple) Set(key string, item any) error {
 // SetMultiply Persists a cache items.
 func (c *FileSimple) SetMultiply(values map[string]any, ttl time.Duration) error {
 	for key, value := range values {
-		item, err := c.getFileItem(key, value)
+		item := c.getFileItem(key, value)
 		item.ExpiresAfter(ttl)
 
 		data, err := json.Marshal(item)
@@ -159,16 +158,13 @@ func (c *FileSimple) SetMultiply(values map[string]any, ttl time.Duration) error
 	return nil
 }
 
-func (c *FileSimple) getFileItem(key string, value any) (standards.CacheItem, error) {
+func (c *FileSimple) getFileItem(key string, value any) standards.CacheItem {
 	c.Mu.Lock()
 	defer c.Mu.Unlock()
 
-	item, err := NewFileItem(key).Set(value)
-	if err != nil {
-		return nil, errors.New("invalid cache item type")
-	}
+	item, _ := NewFileItem(key).Set(value)
 
-	return item, nil
+	return item
 }
 
 func (c *FileSimple) getFilePath(key string) string {

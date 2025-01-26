@@ -251,7 +251,7 @@ func TestFile_Save(t *testing.T) {
 		assert.NoError(t, err)
 
 		item := cache.NewFileItem("invalid-json")
-		item.Set(make(chan int)) // Invalid value for JSON
+		item.Set(make(chan int))
 
 		err = fileCache.Save(item)
 		assert.Error(t, err)

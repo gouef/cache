@@ -10,6 +10,39 @@ import (
 	"time"
 )
 
+func TestFileSimple(t *testing.T) {
+
+	t.Run("Clear", func(t *testing.T) {
+
+		dir := setupCacheDir(t)
+		c, err := cache.NewFileSimple(dir)
+		assert.NoError(t, err, "Failed to create file cache")
+
+		items := []string{"item1", "item2", "item3"}
+		for _, key := range items {
+			err := c.Set(key, "key"+"_value")
+			assert.NoError(t, err, "Failed to save cache item")
+		}
+
+		err = c.Clear()
+		assert.NoError(t, err, "Failed to clear cache")
+
+		for _, key := range items {
+			cachedItem := c.Get(key, nil)
+			assert.Nil(t, cachedItem)
+		}
+	})
+
+	t.Run("SetMultiply error", func(t *testing.T) {
+		dir := setupCacheDir(t)
+		c, err := cache.NewFileSimple(dir)
+		assert.NoError(t, err, "Failed to create file cache")
+
+		c.Dir = "/non-exists"
+		assert.Error(t, c.SetMultiply(map[string]any{"item1": "data", "item2": "data2"}, 1*time.Minute))
+	})
+}
+
 func TestFileSimple_SaveAndGetItem(t *testing.T) {
 	dir := setupCacheDir(t)
 	c, err := cache.NewFileSimple(dir)
@@ -136,13 +169,6 @@ func TestFileSimple_SetMultiply(t *testing.T) {
 	time.Sleep(1 * time.Second)
 
 	assert.Nil(t, c.Get("example3", nil))
-
-	/*
-		cachedItems = c.GetMultiply([]string{"example", "example2"}, nil)
-		assert.NotEmpty(t, cachedItems)
-
-		assert.Equal(t, 2, len(cachedItems))
-	*/
 }
 
 func TestFileSimple_InvalidJson(t *testing.T) {
@@ -182,26 +208,6 @@ func TestFileSimple_InvalidJson(t *testing.T) {
 	assert.Equal(t, 1, len(cachedItems))
 }
 
-func TestFileSimple_Clear(t *testing.T) {
-	dir := setupCacheDir(t)
-	c, err := cache.NewFileSimple(dir)
-	assert.NoError(t, err, "Failed to create file cache")
-
-	items := []string{"item1", "item2", "item3"}
-	for _, key := range items {
-		err := c.Set(key, "key"+"_value")
-		assert.NoError(t, err, "Failed to save cache item")
-	}
-
-	err = c.Clear()
-	assert.NoError(t, err, "Failed to clear cache")
-
-	for _, key := range items {
-		cachedItem := c.Get(key, nil)
-		assert.Nil(t, cachedItem)
-	}
-}
-
 func TestFileSimple_DeleteItem(t *testing.T) {
 	dir := setupCacheDir(t)
 	c, err := cache.NewFileSimple(dir)
@@ -215,6 +221,8 @@ func TestFileSimple_DeleteItem(t *testing.T) {
 
 	cachedItem := c.Get("item_to_delete", nil)
 	assert.Nil(t, cachedItem)
+
+	assert.False(t, c.Has("non-exists-key"))
 }
 
 func TestFileSimple_Save(t *testing.T) {
@@ -236,9 +244,8 @@ func TestFileSimple_Save(t *testing.T) {
 	t.Run("should return error when os.Remove fails", func(t *testing.T) {
 		tempDir := t.TempDir()
 
-		// Vytvoření souboru s omezenými oprávněními
 		filePath := filepath.Join(tempDir, "test-file")
-		err := os.WriteFile(filePath, []byte("data"), 0000) // Nastavení nulových oprávnění
+		err := os.WriteFile(filePath, []byte("data"), 0000)
 		_ = os.Chmod(filePath, 0000)
 		assert.NoError(t, err)
 
@@ -255,6 +262,7 @@ func TestFileSimple_Save(t *testing.T) {
 		}
 
 		_ = os.Chmod(filePath, 0644)
+
 	})
 
 	t.Run("should return error when os.Remove fails (file not exists)", func(t *testing.T) {
@@ -275,5 +283,20 @@ func TestFileSimple_Save(t *testing.T) {
 		}
 
 		_ = os.Chmod(filePath, 0644)
+	})
+
+	t.Run("Json errors", func(t *testing.T) {
+
+		t.Run("Save should handle json.Marshal error", func(t *testing.T) {
+			tempDir := t.TempDir()
+			fileCache, err := cache.NewFileSimple(tempDir)
+			assert.NoError(t, err)
+
+			item := cache.NewFileItem("invalid-json")
+			item.Set(make(chan int))
+
+			err = fileCache.SetMultiply(map[string]any{"invalid-json": item.Get()}, 1*time.Minute)
+			assert.Error(t, err)
+		})
 	})
 }

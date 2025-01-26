@@ -33,6 +33,7 @@ go get -u github.com/gouef/cache
 - [File](docs/File.md)
 - [Memory](docs/Memory.md)
 - [Redis](docs/Redis.md)
+- [Storage](docs/Storage.md)
 
 ## Contributing
 

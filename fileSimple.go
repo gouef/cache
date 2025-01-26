@@ -14,7 +14,6 @@ type FileSimple struct {
 	Dir             string
 	Mu              sync.RWMutex
 	AllowDefaultNil bool
-	error           error
 }
 
 // NewFileSimple create FileSimple instance with not allowed default value nil

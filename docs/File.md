@@ -155,3 +155,25 @@ func main() {
 	}
 }
 ```
+
+### FileSimple
+The main simplified structure for working with the file-based cache.
+
+#### Properties:
+- `Dir`: The directory path where cache files will be stored.
+- `Mu`: A lock to ensure thread-safety when accessing the files.
+- `AllowDefaultNil`: if `true` it will return `nil` for case when cache item not exists.
+
+#### Functions:
+
+- `NewFileSimple(dir string) (*FileSimple, error)`: create FileSimple instance (allowDefaultNil `false`)
+- `NewFileSimpleWithDefaultNil(dir string, allowDefaultNil bool) (*FileSimple, error)`: create FileSimple instance
+- `Get(key string, defaultValue any) any`: Returns a value from the cache.
+- `GetMultiply(keys []string, defaultValue any) []any`: Returns a list of cache items.
+- `Has(key string) bool`: Determines whether an item is present in the cache.
+- `Clear() error`: Deletes all cache's keys.
+- `Delete(key string) error`: Remove an item from the cache.
+- `DeleteMultiply(keys ...string) error`: Removes multiple items in a single operation.
+- `Set(key string, item any) error`: Persists a cache item.
+- `SetMultiply(values map[string]any, ttl time.Duration) error`: Persists a cache items.
+

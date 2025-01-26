@@ -269,9 +269,8 @@ func TestFile_Save(t *testing.T) {
 	t.Run("should return error when os.Remove fails", func(t *testing.T) {
 		tempDir := t.TempDir()
 
-		// Vytvoření souboru s omezenými oprávněními
 		filePath := filepath.Join(tempDir, "test-file")
-		err := os.WriteFile(filePath, []byte("data"), 0000) // Nastavení nulových oprávnění
+		err := os.WriteFile(filePath, []byte("data"), 0000)
 		_ = os.Chmod(filePath, 0000)
 		assert.NoError(t, err)
 
@@ -294,7 +293,7 @@ func TestFile_Save(t *testing.T) {
 		tempDir := t.TempDir()
 
 		filePath := filepath.Join(tempDir, "test-file")
-		err := os.WriteFile(filePath, []byte("data"), 0000) // Nastavení nulových oprávnění
+		err := os.WriteFile(filePath, []byte("data"), 0000)
 		_ = os.Chmod(filePath, 0000)
 		assert.NoError(t, err)
 

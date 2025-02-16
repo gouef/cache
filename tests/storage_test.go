@@ -12,6 +12,8 @@ func TestStorage(t *testing.T) {
 		storage := cache.NewStorage()
 		assert.NotNil(t, storage)
 
+		assert.Equal(t, storage, cache.GetStorage())
+
 		memory, err := storage.AddMemory("memory")
 		assert.NotNil(t, memory)
 		assert.Nil(t, err)

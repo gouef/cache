@@ -3,6 +3,7 @@ It's wrapper of `Cache` instances.
 
 ## Functions:
 - `NewStorage() *Storage`: create new instance of `Storage`
+- `GetStorage() *Storage`: get created instance of `Storage` (global usages).
 - `Add(name string, cache standards.Cache) (standards.Cache, error)`: add cache instance to list
 - `Get(name string) (cache standards.Cache, exists bool)`: return cache instance
 - `AddFile(name, dir string) (standards.Cache, error)`: create File cache instance and add it to list
@@ -53,5 +54,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func write() {
+    storage := cache.GetStorage()
+	// ...
 }
 ```

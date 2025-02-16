@@ -7,15 +7,24 @@ import (
 	redisLib "github.com/redis/go-redis/v9"
 )
 
+var storage *Storage
+
 type Storage struct {
 	Storages map[string]standards.Cache
 }
 
 // NewStorage create new instance of Storage
 func NewStorage() *Storage {
-	return &Storage{
+	s := &Storage{
 		Storages: make(map[string]standards.Cache),
 	}
+	storage = s
+	return s
+}
+
+// GetStorage get storage (for global usages)
+func GetStorage() *Storage {
+	return storage
 }
 
 // Add add cache instance to list

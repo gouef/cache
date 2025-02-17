@@ -5,9 +5,13 @@ import (
 	"fmt"
 	"github.com/gouef/standards"
 	redisLib "github.com/redis/go-redis/v9"
+	"sync"
 )
 
-var storage *Storage
+var (
+	mu      sync.RWMutex
+	storage *Storage
+)
 
 type Storage struct {
 	Storages map[string]standards.Cache
@@ -15,6 +19,8 @@ type Storage struct {
 
 // NewStorage create new instance of Storage
 func NewStorage() *Storage {
+	mu.Lock()
+	defer mu.Unlock()
 	s := &Storage{
 		Storages: make(map[string]standards.Cache),
 	}
@@ -24,6 +30,8 @@ func NewStorage() *Storage {
 
 // GetStorage get storage (for global usages)
 func GetStorage() *Storage {
+	mu.RLock()
+	defer mu.RUnlock()
 	return storage
 }
 

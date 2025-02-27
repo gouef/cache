@@ -2,6 +2,7 @@ package tests
 
 import (
 	"github.com/gouef/cache"
+	"github.com/gouef/standards"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"
@@ -26,7 +27,8 @@ func TestFile_SaveAndGetItem(t *testing.T) {
 	assert.NoError(t, err, "Failed to create file cache")
 
 	item := cache.NewFileItem("example")
-	_, err = item.Set("Hello, world!")
+	_, err = item.Set("Hello, world!", standards.KeepTTL)
+	item.ExpiresAfter(cache.KeepTTL)
 	assert.NoError(t, err, "Failed to save cache item value")
 
 	item.ExpiresAfter(5 * time.Minute)
@@ -54,19 +56,19 @@ func TestFile_SaveAndGetItems(t *testing.T) {
 	assert.NoError(t, err, "Failed to create file cache")
 
 	item := cache.NewFileItem("example")
-	_, err = item.Set("Hello, world!")
+	_, err = item.Set("Hello, world!", standards.KeepTTL)
 	assert.NoError(t, err, "Failed to save cache item value")
 
 	item.ExpiresAfter(5 * time.Minute)
 
 	item2 := cache.NewFileItem("example2")
-	_, err = item2.Set("Hello, world!")
+	_, err = item2.Set("Hello, world!", standards.KeepTTL)
 	assert.NoError(t, err, "Failed to save cache item value")
 
 	item2.ExpiresAfter(5 * time.Minute)
 
 	item3 := cache.NewFileItem("example3")
-	_, err = item3.Set("Hello, world!")
+	_, err = item3.Set("Hello, world!", standards.KeepTTL)
 	assert.NoError(t, err, "Failed to save cache item value")
 
 	item3.ExpiresAfter(1 * time.Second)
@@ -108,19 +110,19 @@ func TestFile_InvalidJson(t *testing.T) {
 	assert.NoError(t, err, "Failed to create file cache")
 
 	item := cache.NewFileItem("example")
-	_, err = item.Set("Hello, world!")
+	_, err = item.Set("Hello, world!", standards.KeepTTL)
 	assert.NoError(t, err, "Failed to save cache item value")
 
 	item.ExpiresAfter(5 * time.Minute)
 
 	item2 := cache.NewFileItem("example2")
-	_, err = item2.Set("Hello, world!")
+	_, err = item2.Set("Hello, world!", standards.KeepTTL)
 	assert.NoError(t, err, "Failed to save cache item value")
 
 	item2.ExpiresAfter(5 * time.Minute)
 
 	item3 := cache.NewFileItem("example3")
-	_, err = item3.Set("Hello, world!")
+	_, err = item3.Set("Hello, world!", standards.KeepTTL)
 	assert.NoError(t, err, "Failed to save cache item value")
 
 	item3.ExpiresAfter(5 * time.Minute)
@@ -149,8 +151,9 @@ func TestFile_ItemExpiration(t *testing.T) {
 	assert.NoError(t, err, "Failed to create file cache")
 
 	item := &cache.FileItem{
-		Key:   "expiring_item",
-		Value: "This will expire",
+		Key:     "expiring_item",
+		Value:   "This will expire",
+		KeepTTL: false,
 	}
 	item.ExpiresAfter(1 * time.Second)
 
@@ -251,7 +254,7 @@ func TestFile_Save(t *testing.T) {
 		assert.NoError(t, err)
 
 		item := cache.NewFileItem("invalid-json")
-		item.Set(make(chan int))
+		item.Set(make(chan int), standards.KeepTTL)
 
 		err = fileCache.Save(item)
 		assert.Error(t, err)

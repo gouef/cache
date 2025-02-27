@@ -10,6 +10,7 @@ type RedisItem struct {
 	value      any
 	hit        bool
 	expiration time.Time
+	KeepTTL    bool
 }
 
 func NewRedisItem(key string) *RedisItem {
@@ -32,20 +33,28 @@ func (r *RedisItem) Get() any {
 }
 
 func (r *RedisItem) IsHit() bool {
-	return r.hit && (r.expiration.IsZero() || r.expiration.After(time.Now()))
+	return r.KeepTTL || (r.hit && (r.expiration.IsZero() || r.expiration.After(time.Now())))
 }
 
-func (r *RedisItem) Set(value any) (standards.CacheItem, error) {
+func (r *RedisItem) Set(value any, ttl time.Duration) (standards.CacheItem, error) {
 	r.value = value
 	r.hit = true
+	if ttl == KeepTTL {
+		r.KeepTTL = true
+	}
 	return r, nil
 }
 
 func (r *RedisItem) ExpiresAt(expiration time.Time) (standards.CacheItem, error) {
 	r.expiration = expiration
+	r.KeepTTL = false
 	return r, nil
 }
 
 func (r *RedisItem) ExpiresAfter(t time.Duration) {
-	r.ExpiresAt(time.Now().Add(t))
+	if t == KeepTTL {
+		r.KeepTTL = true
+	} else {
+		r.ExpiresAt(time.Now().Add(t))
+	}
 }

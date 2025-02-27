@@ -44,7 +44,7 @@ func (c *File) GetItem(key string) standards.CacheItem {
 		return nil
 	}
 
-	if item.Expiration.Before(time.Now()) && !item.Expiration.IsZero() {
+	if !item.KeepTTL && item.Expiration.Before(time.Now()) && !item.Expiration.IsZero() {
 		_ = os.Remove(filePath)
 		return nil
 	}

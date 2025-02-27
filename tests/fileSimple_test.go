@@ -2,6 +2,7 @@ package tests
 
 import (
 	"github.com/gouef/cache"
+	"github.com/gouef/standards"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"
@@ -20,7 +21,7 @@ func TestFileSimple(t *testing.T) {
 
 		items := []string{"item1", "item2", "item3"}
 		for _, key := range items {
-			err := c.Set(key, "key"+"_value")
+			err := c.Set(key, "key"+"_value", standards.KeepTTL)
 			assert.NoError(t, err, "Failed to save cache item")
 		}
 
@@ -39,7 +40,8 @@ func TestFileSimple(t *testing.T) {
 		assert.NoError(t, err, "Failed to create file cache")
 
 		c.Dir = "/non-exists"
-		assert.Error(t, c.SetMultiply(map[string]any{"item1": "data", "item2": "data2"}, 1*time.Minute))
+		oneMinute := 1 * time.Minute
+		assert.Error(t, c.SetMultiply(map[string]any{"item1": "data", "item2": "data2"}, oneMinute))
 	})
 }
 
@@ -48,7 +50,7 @@ func TestFileSimple_SaveAndGetItem(t *testing.T) {
 	c, err := cache.NewFileSimple(dir)
 	assert.NoError(t, err, "Failed to create cache directory")
 
-	err = c.Set("example", "Hello, world!")
+	err = c.Set("example", "Hello, world!", standards.KeepTTL)
 
 	assert.NoError(t, err, "Failed to save cache item")
 
@@ -67,28 +69,28 @@ func TestFileSimple_SaveAndGetItems(t *testing.T) {
 	assert.NoError(t, err, "Failed to create file cache")
 
 	item := cache.NewFileItem("example")
-	_, err = item.Set("Hello, world!")
+	_, err = item.Set("Hello, world!", standards.KeepTTL)
 	assert.NoError(t, err, "Failed to save cache item value")
 
 	item.ExpiresAfter(5 * time.Minute)
-	err = c.Set(item.GetKey(), item.Get())
+	err = c.Set(item.GetKey(), item.Get(), standards.KeepTTL)
 	assert.NoError(t, err, "Failed to save cache item value")
 
 	item2 := cache.NewFileItem("example2")
-	_, err = item2.Set("Hello, world!")
+	_, err = item2.Set("Hello, world!", standards.KeepTTL)
 	assert.NoError(t, err, "Failed to save cache item value")
 
 	item2.ExpiresAfter(5 * time.Minute)
 
 	item3 := cache.NewFileItem("example3")
-	_, err = item3.Set("Hello, world!")
+	_, err = item3.Set("Hello, world!", standards.KeepTTL)
 	assert.NoError(t, err, "Failed to save cache item value")
 
 	item3.ExpiresAfter(1 * time.Second)
 
-	err = c.Set(item2.GetKey(), item2.Get())
+	err = c.Set(item2.GetKey(), item2.Get(), standards.KeepTTL)
 	assert.NoError(t, err, "Failed to save cache item")
-	err = c.Set(item3.GetKey(), item3.Get())
+	err = c.Set(item3.GetKey(), item3.Get(), standards.KeepTTL)
 	assert.NoError(t, err, "Failed to save cache item")
 
 	time.Sleep(1 * time.Second)
@@ -119,28 +121,28 @@ func TestFileSimple_SetMultiply(t *testing.T) {
 	assert.NoError(t, err, "Failed to create file cache")
 
 	item := cache.NewFileItem("example")
-	_, err = item.Set("Hello, world!")
+	_, err = item.Set("Hello, world!", standards.KeepTTL)
 	assert.NoError(t, err, "Failed to save cache item value")
 
 	item.ExpiresAfter(5 * time.Minute)
-	err = c.Set(item.GetKey(), item.Get())
+	err = c.Set(item.GetKey(), item.Get(), standards.KeepTTL)
 	assert.NoError(t, err, "Failed to save cache item value")
 
 	item2 := cache.NewFileItem("example2")
-	_, err = item2.Set("Hello, world!")
+	_, err = item2.Set("Hello, world!", standards.KeepTTL)
 	assert.NoError(t, err, "Failed to save cache item value")
 
 	item2.ExpiresAfter(5 * time.Minute)
 
 	item3 := cache.NewFileItem("example3")
-	_, err = item3.Set("Hello, world!")
+	_, err = item3.Set("Hello, world!", standards.KeepTTL)
 	assert.NoError(t, err, "Failed to save cache item value")
 
 	item3.ExpiresAfter(1 * time.Second)
 
-	err = c.Set(item2.GetKey(), item2.Get())
+	err = c.Set(item2.GetKey(), item2.Get(), standards.KeepTTL)
 	assert.NoError(t, err, "Failed to save cache item")
-	err = c.Set(item3.GetKey(), item3.Get())
+	err = c.Set(item3.GetKey(), item3.Get(), standards.KeepTTL)
 	assert.NoError(t, err, "Failed to save cache item")
 
 	data := map[string]any{
@@ -148,7 +150,8 @@ func TestFileSimple_SetMultiply(t *testing.T) {
 		item2.GetKey(): item2.GetKey(),
 		item3.GetKey(): item3.GetKey(),
 	}
-	err = c.SetMultiply(data, 5*time.Minute)
+	fiveMinute := 5 * time.Minute
+	err = c.SetMultiply(data, fiveMinute)
 
 	time.Sleep(1 * time.Second)
 
@@ -158,13 +161,12 @@ func TestFileSimple_SetMultiply(t *testing.T) {
 	assert.Equal(t, 2, len(cachedItems))
 
 	c.Clear()
-
-	err = c.SetMultiply(map[string]any{}, 5*time.Minute)
+	err = c.SetMultiply(map[string]any{}, fiveMinute)
 	assert.Nil(t, err)
 
 	c.Clear()
-
-	err = c.SetMultiply(data, 1*time.Nanosecond)
+	oneNanosecond := 1 * time.Nanosecond
+	err = c.SetMultiply(data, oneNanosecond)
 
 	time.Sleep(1 * time.Second)
 
@@ -177,26 +179,26 @@ func TestFileSimple_InvalidJson(t *testing.T) {
 	assert.NoError(t, err, "Failed to create file cache")
 
 	item := cache.NewFileItem("example")
-	_, err = item.Set("Hello, world!")
+	_, err = item.Set("Hello, world!", standards.KeepTTL)
 	assert.NoError(t, err, "Failed to save cache item value")
 
 	item.ExpiresAfter(5 * time.Minute)
 
 	item2 := cache.NewFileItem("example2")
-	_, err = item2.Set("Hello, world!")
+	_, err = item2.Set("Hello, world!", standards.KeepTTL)
 	assert.NoError(t, err, "Failed to save cache item value")
 
 	item2.ExpiresAfter(5 * time.Minute)
 
 	item3 := cache.NewFileItem("example3")
-	_, err = item3.Set("Hello, world!")
+	_, err = item3.Set("Hello, world!", standards.KeepTTL)
 	assert.NoError(t, err, "Failed to save cache item value")
 
 	item3.ExpiresAfter(5 * time.Minute)
 
-	err = c.Set(item2.GetKey(), item2.Get())
+	err = c.Set(item2.GetKey(), item2.Get(), standards.KeepTTL)
 	assert.NoError(t, err, "Failed to save cache item")
-	err = c.Set(item3.GetKey(), item3.Get())
+	err = c.Set(item3.GetKey(), item3.Get(), standards.KeepTTL)
 	assert.NoError(t, err, "Failed to save cache item")
 
 	err = c.DeleteMultiply("example", "example2")
@@ -213,7 +215,7 @@ func TestFileSimple_DeleteItem(t *testing.T) {
 	c, err := cache.NewFileSimple(dir)
 	assert.NoError(t, err, "Failed to create file cache")
 
-	err = c.Set("item_to_delete", "Delete me")
+	err = c.Set("item_to_delete", "Delete me", standards.KeepTTL)
 	assert.NoError(t, err, "Failed to save cache item")
 
 	err = c.Delete("item_to_delete")
@@ -231,7 +233,7 @@ func TestFileSimple_Save(t *testing.T) {
 		fileCache, err := cache.NewFileSimple(tempDir)
 		assert.NoError(t, err)
 
-		err = fileCache.Set("invalid-json", make(chan int))
+		err = fileCache.Set("invalid-json", make(chan int), standards.KeepTTL)
 		assert.Error(t, err)
 	})
 
@@ -293,9 +295,10 @@ func TestFileSimple_Save(t *testing.T) {
 			assert.NoError(t, err)
 
 			item := cache.NewFileItem("invalid-json")
-			item.Set(make(chan int))
+			item.Set(make(chan int), standards.KeepTTL)
 
-			err = fileCache.SetMultiply(map[string]any{"invalid-json": item.Get()}, 1*time.Minute)
+			oneMinute := 1 * time.Minute
+			err = fileCache.SetMultiply(map[string]any{"invalid-json": item.Get()}, oneMinute)
 			assert.Error(t, err)
 		})
 	})

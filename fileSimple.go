@@ -14,6 +14,7 @@ type FileSimple struct {
 	Dir             string
 	Mu              sync.RWMutex
 	AllowDefaultNil bool
+	KeepTTL         bool
 }
 
 // NewFileSimple create FileSimple instance with not allowed default value nil
@@ -125,8 +126,8 @@ func (c *FileSimple) DeleteMultiply(keys ...string) error {
 }
 
 // Set Persists a cache item.
-func (c *FileSimple) Set(key string, item any) error {
-	fItem := c.getFileItem(key, item)
+func (c *FileSimple) Set(key string, item any, ttl time.Duration) error {
+	fItem := c.getFileItem(key, item, ttl)
 
 	data, err := json.Marshal(fItem)
 	if err != nil {
@@ -139,7 +140,7 @@ func (c *FileSimple) Set(key string, item any) error {
 // SetMultiply Persists a cache items.
 func (c *FileSimple) SetMultiply(values map[string]any, ttl time.Duration) error {
 	for key, value := range values {
-		item := c.getFileItem(key, value)
+		item := c.getFileItem(key, value, ttl)
 		item.ExpiresAfter(ttl)
 
 		data, err := json.Marshal(item)
@@ -157,11 +158,11 @@ func (c *FileSimple) SetMultiply(values map[string]any, ttl time.Duration) error
 	return nil
 }
 
-func (c *FileSimple) getFileItem(key string, value any) standards.CacheItem {
+func (c *FileSimple) getFileItem(key string, value any, ttl time.Duration) standards.CacheItem {
 	c.Mu.Lock()
 	defer c.Mu.Unlock()
 
-	item, _ := NewFileItem(key).Set(value)
+	item, _ := NewFileItem(key).Set(value, ttl)
 
 	return item
 }

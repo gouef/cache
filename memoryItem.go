@@ -10,6 +10,7 @@ type MemoryItem struct {
 	key        string
 	value      any
 	expiration time.Time
+	KeepTTL    bool
 	hit        bool
 	mu         sync.RWMutex
 }
@@ -37,26 +38,30 @@ func (m *MemoryItem) Get() any {
 func (m *MemoryItem) IsHit() bool {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	return m.hit && (m.expiration.IsZero() || m.expiration.After(time.Now()))
+
+	return m.KeepTTL || (m.hit && (m.expiration.IsZero() || m.expiration.After(time.Now())))
 }
 
-func (m *MemoryItem) Set(value any) (standards.CacheItem, error) {
+func (m *MemoryItem) Set(value any, ttl time.Duration) (standards.CacheItem, error) {
+
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.value = value
-	m.hit = true
+	m.ExpiresAfter(ttl)
 	return m, nil
 }
 
 func (m *MemoryItem) ExpiresAt(expiration time.Time) (standards.CacheItem, error) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
 	m.expiration = expiration
+	m.KeepTTL = false
 	return m, nil
 }
 
 func (m *MemoryItem) ExpiresAfter(t time.Duration) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	m.expiration = time.Now().Add(t)
+	if t == KeepTTL {
+		m.KeepTTL = true
+		m.hit = true
+	} else {
+		m.ExpiresAt(time.Now().Add(t))
+	}
 }

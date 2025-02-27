@@ -2,6 +2,7 @@ package tests
 
 import (
 	"github.com/gouef/cache"
+	"github.com/gouef/standards"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -10,7 +11,7 @@ import (
 func TestMemory(t *testing.T) {
 	t.Run("Create Memory and basic functions", func(t *testing.T) {
 		memory := cache.NewMemory()
-		item, err := cache.NewMemoryItem("test").Set("data")
+		item, err := cache.NewMemoryItem("test").Set("data", standards.KeepTTL)
 
 		assert.Empty(t, memory.GetItems("test"))
 		assert.Nil(t, err)
@@ -18,9 +19,9 @@ func TestMemory(t *testing.T) {
 
 		item.ExpiresAfter(3 * time.Minute)
 
-		item2, err := cache.NewMemoryItem("test 2").Set("test data")
+		item2, err := cache.NewMemoryItem("test 2").Set("test data", standards.KeepTTL)
 		assert.NoError(t, err)
-		item3, err := cache.NewMemoryItem("test 3").Set("test data 3")
+		item3, err := cache.NewMemoryItem("test 3").Set("test data 3", standards.KeepTTL)
 		assert.NoError(t, err)
 
 		assert.NoError(t, memory.Save(item2))
@@ -46,7 +47,7 @@ func TestMemory(t *testing.T) {
 	})
 	t.Run("Try save FileItem ", func(t *testing.T) {
 		memory := cache.NewMemory()
-		item, err := cache.NewFileItem("test").Set("data")
+		item, err := cache.NewFileItem("test").Set("data", standards.KeepTTL)
 
 		assert.Empty(t, memory.GetItems("test"))
 		assert.Nil(t, err)
@@ -64,7 +65,7 @@ func TestMemoryItem(t *testing.T) {
 		assert.Equal(t, "test", item.GetKey())
 		assert.Equal(t, false, item.IsHit())
 
-		c, err := item.Set("data")
+		c, err := item.Set("data", standards.KeepTTL)
 
 		assert.NoError(t, err)
 		assert.Equal(t, "data", c.Get())
@@ -73,7 +74,36 @@ func TestMemoryItem(t *testing.T) {
 
 		assert.True(t, c.IsHit())
 
-		c.ExpiresAt(time.Now().Add(1 * time.Second))
+		oneSecond := time.Now().Add(1 * time.Second)
+		c.ExpiresAt(oneSecond)
+		time.Sleep(2 * time.Second)
+
+		assert.False(t, c.IsHit())
+		assert.Nil(t, c.Get())
+	})
+
+	t.Run("Create MemoryItem function and basic functions", func(t *testing.T) {
+		item, err := cache.NewMemoryItem("test").Set(func() int {
+			return 7 + 4
+		}, 0)
+
+		assert.NoError(t, err)
+
+		assert.NotNil(t, item)
+		assert.Equal(t, "test", item.GetKey())
+		assert.Equal(t, false, item.IsHit())
+
+		c, err := item.Set("data", standards.KeepTTL)
+
+		assert.NoError(t, err)
+		assert.Equal(t, "data", c.Get())
+
+		c.ExpiresAfter(3 * time.Minute)
+
+		assert.True(t, c.IsHit())
+
+		oneSecond := time.Now().Add(1 * time.Second)
+		c.ExpiresAt(oneSecond)
 		time.Sleep(2 * time.Second)
 
 		assert.False(t, c.IsHit())

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/go-redis/redismock/v9"
 	"github.com/gouef/cache"
+	"github.com/gouef/standards"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -19,7 +20,7 @@ func TestRedis(t *testing.T) {
 		mock.ExpectGet("test").SetErr(errors.New("not found"))
 
 		r := cache.NewRedis(db)
-		item, err := cache.NewRedisItem("test").Set("data")
+		item, err := cache.NewRedisItem("test").Set("data", standards.KeepTTL)
 
 		assert.Empty(t, r.GetItems("test"))
 		assert.Nil(t, err)
@@ -30,9 +31,9 @@ func TestRedis(t *testing.T) {
 
 		item.ExpiresAfter(3 * time.Minute)
 
-		item2, err := cache.NewRedisItem("test 2").Set("test data")
+		item2, err := cache.NewRedisItem("test 2").Set("test data", standards.KeepTTL)
 		assert.NoError(t, err)
-		item3, err := cache.NewRedisItem("test 3").Set("test data 3")
+		item3, err := cache.NewRedisItem("test 3").Set("test data 3", standards.KeepTTL)
 		assert.NoError(t, err)
 
 		mock.ExpectSet("test 2", "test data", 0).SetVal("test data")
@@ -82,7 +83,7 @@ func TestRedis(t *testing.T) {
 		mock.ExpectGet("rediLibNil").RedisNil()
 		assert.Nil(t, r.GetItem("rediLibNil"))
 
-		mItem, err := cache.NewMemoryItem("mTest").Set("data memory")
+		mItem, err := cache.NewMemoryItem("mTest").Set("data memory", standards.KeepTTL)
 		assert.Nil(t, err)
 
 		assert.Error(t, r.Save(mItem))
@@ -97,7 +98,8 @@ func TestRedisItem(t *testing.T) {
 		assert.Equal(t, "test", item.GetKey())
 		assert.Equal(t, false, item.IsHit())
 
-		c, err := item.Set("data")
+		c, err := item.Set("data", standards.KeepTTL)
+		c.ExpiresAfter(cache.KeepTTL)
 
 		assert.NoError(t, err)
 		assert.Equal(t, "data", c.Get())
@@ -106,7 +108,8 @@ func TestRedisItem(t *testing.T) {
 
 		assert.True(t, c.IsHit())
 
-		c.ExpiresAt(time.Now().Add(1 * time.Second))
+		oneSecond := time.Now().Add(1 * time.Second)
+		c.ExpiresAt(oneSecond)
 		time.Sleep(2 * time.Second)
 
 		assert.False(t, c.IsHit())

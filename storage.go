@@ -8,6 +8,8 @@ import (
 	"sync"
 )
 
+const KeepTTL = standards.KeepTTL
+
 var (
 	mu      sync.RWMutex
 	storage *Storage

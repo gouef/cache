@@ -5,7 +5,7 @@ go 1.23.4
 require (
 	github.com/go-redis/redismock/v9 v9.2.0
 	github.com/gouef/standards v1.0.8
-	github.com/redis/go-redis/v9 v9.7.1
+	github.com/redis/go-redis/v9 v9.8.0
 	github.com/stretchr/testify v1.10.0
 )
 
